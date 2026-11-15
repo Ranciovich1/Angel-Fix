@@ -1,1 +1,529 @@
-.
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#080b12">
+<title>ANGEL FIX</title>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<style>
+:root {
+  --bg:#080b12;
+  --panel:#111827;
+  --card:#182235;
+  --blue:#16a8ff;
+  --text:#f5f7fb;
+  --muted:#91a0b7;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+header {
+  padding:18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  background:#0d1420;
+  position:sticky;
+  top:0;
+  z-index:5;
+  border-bottom:1px solid #202c40;
+}
+.logo {
+  font-size:23px;
+  font-weight:900;
+  color:var(--blue);
+  letter-spacing:1px;
+}
+.logo span {color:white}
+.header-small {font-size:10px;color:var(--muted)}
+nav {
+  display:flex;
+  overflow-x:auto;
+  gap:8px;
+  padding:12px;
+  background:#0d1420;
+}
+nav button {
+  border:0;
+  background:#1a2639;
+  color:white;
+  padding:11px 16px;
+  border-radius:10px;
+  white-space:nowrap;
+  font-weight:bold;
+}
+nav button.active {
+  background:var(--blue);
+  color:#001321;
+}
+main {padding:15px}
+.hero {
+  background:linear-gradient(120deg,#102d4b,#111827 65%,#182235);
+  padding:23px;
+  border-radius:17px;
+  margin-bottom:20px;
+}
+.hero h1 {margin:0 0 8px;font-size:27px}
+.hero p {color:#b5c7dc;font-size:13px}
+.section-title {font-size:19px;margin:20px 0 12px}
+.search {
+  display:flex;
+  gap:8px;
+  margin-bottom:15px;
+}
+input {
+  min-width:0;
+  flex:1;
+  background:#172236;
+  border:1px solid #2a3a53;
+  color:white;
+  padding:13px;
+  border-radius:10px;
+  outline:none;
+}
+input:focus {border-color:var(--blue)}
+button,.action {
+  cursor:pointer;
+}
+.primary {
+  background:var(--blue);
+  color:#001321;
+  border:0;
+  padding:12px 15px;
+  border-radius:10px;
+  font-weight:bold;
+}
+.secondary {
+  background:#202d42;
+  color:white;
+  border:0;
+  padding:12px;
+  border-radius:10px;
+}
+.grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(135px,1fr));
+  gap:12px;
+}
+.channel {
+  background:var(--card);
+  border:1px solid #25334a;
+  border-radius:13px;
+  padding:12px;
+  min-width:0;
+}
+.channel-logo {
+  width:100%;
+  height:75px;
+  background:#101a2a;
+  border-radius:9px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin-bottom:10px;
+  overflow:hidden;
+  color:var(--blue);
+  font-size:24px;
+}
+.channel-logo img {
+  max-width:90%;
+  max-height:65px;
+  object-fit:contain;
+}
+.channel-name {
+  font-size:13px;
+  font-weight:bold;
+  overflow-wrap:anywhere;
+}
+.channel-cat {
+  color:var(--muted);
+  font-size:11px;
+  margin-top:5px;
+}
+.card-actions {
+  display:flex;
+  gap:6px;
+  margin-top:10px;
+}
+.card-actions button {
+  flex:1;
+  border:0;
+  border-radius:7px;
+  padding:8px 4px;
+  background:#263751;
+  color:white;
+}
+.card-actions .play {background:var(--blue);color:#001321}
+.empty {
+  text-align:center;
+  color:var(--muted);
+  padding:35px 10px;
+  line-height:1.7;
+}
+#playerBox {
+  display:none;
+  background:#000;
+  border-radius:13px;
+  overflow:hidden;
+  margin-bottom:20px;
+}
+video {
+  width:100%;
+  max-height:55vh;
+  background:#000;
+}
+.player-info {
+  padding:12px;
+  background:#121a29;
+}
+#settings {
+  display:none;
+  background:var(--panel);
+  padding:16px;
+  border-radius:14px;
+  margin-top:18px;
+}
+#settings input {width:100%;margin:7px 0}
+.setting-row {margin-bottom:17px}
+.setting-row small {color:var(--muted)}
+footer {
+  text-align:center;
+  color:#64748b;
+  padding:30px 10px;
+  font-size:11px;
+}
+.hidden {display:none!important}
+@media(min-width:700px) {
+  main {max-width:1100px;margin:auto}
+  .hero {padding:35px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <div>
+    <div class="logo">ANGEL <span>FIX</span></div>
+    <div class="header-small">LIVE TV · MOVIES · SERIES</div>
+  </div>
+  <button class="secondary" onclick="toggleSettings()">⚙️</button>
+</header>
+
+<nav>
+  <button class="active" data-page="live" onclick="goPage('live',this)">📺 TV en vivo</button>
+  <button data-page="movies" onclick="goPage('movies',this)">🎬 Películas</button>
+  <button data-page="series" onclick="goPage('series',this)">📚 Series</button>
+  <button data-page="favorites" onclick="goPage('favorites',this)">❤️ Favoritos</button>
+</nav>
+
+<main>
+  <section class="hero">
+    <h1>Bienvenido a ANGEL FIX</h1>
+    <p>Tu entretenimiento en un solo lugar.</p>
+    <button class="primary" onclick="toggleSettings()">CARGAR MI LISTA</button>
+  </section>
+
+  <section id="playerBox">
+    <video id="video" controls playsinline></video>
+    <div class="player-info">
+      <strong id="playingName">Reproduciendo</strong>
+      <button class="secondary" onclick="closePlayer()" style="float:right">✕ Cerrar</button>
+    </div>
+  </section>
+
+  <section id="settings">
+    <h3>⚙️ Configuración de listas</h3>
+    <div class="setting-row">
+      <small>URL de una lista M3U/M3U8</small>
+      <input id="playlistUrl" type="url" placeholder="https://ejemplo.com/lista.m3u">
+      <button class="primary" onclick="loadURL()">Cargar URL</button>
+    </div>
+    <div class="setting-row">
+      <small>O seleccionar un archivo M3U desde el teléfono</small>
+      <input id="playlistFile" type="file" accept=".m3u,.m3u8,.txt">
+      <button class="primary" onclick="loadFile()">Importar archivo</button>
+    </div>
+    <p id="status" style="font-size:12px;color:#16a8ff"></p>
+    <button class="secondary" onclick="toggleSettings()">Cerrar</button>
+  </section>
+
+  <h2 class="section-title" id="pageTitle">📺 Televisión en vivo</h2>
+
+  <div class="search">
+    <input id="search" placeholder="Buscar canales, películas o series..." oninput="render()">
+  </div>
+
+  <div id="content" class="grid">
+    <div class="empty" style="grid-column:1/-1">
+      <div style="font-size:42px">📺</div>
+      <strong>Bienvenido a ANGEL FIX</strong><br>
+      Cargá una lista M3U para comenzar a disfrutar de tus canales.
+    </div>
+  </div>
+</main>
+
+<footer>
+  ANGEL FIX © 2026 · Tu entretenimiento
+</footer>
+
+<script>
+let items = [];
+let page = "live";
+let hls = null;
+
+let favorites = [];
+try {
+  favorites = JSON.parse(localStorage.getItem("angelFavorites") || "[]");
+} catch(e) {
+  favorites = [];
+}
+
+function toggleSettings() {
+  const s = document.getElementById("settings");
+  s.style.display = s.style.display === "block" ? "none" : "block";
+}
+
+function goPage(p,btn) {
+  page = p;
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+
+  const titles = {
+    live:"📺 Televisión en vivo",
+    movies:"🎬 Películas",
+    series:"📚 Series",
+    favorites:"❤️ Mis favoritos"
+  };
+  document.getElementById("pageTitle").textContent = titles[p];
+  render();
+}
+
+function detectType(group,name) {
+  const text = (group+" "+name).toLowerCase();
+
+  if (/serie|series|temporada|season|episodio|episode/.test(text)) return "series";
+  if (/pelicula|película|movie|cine|vod|film/.test(text)) return "movies";
+
+  return "live";
+}
+
+function parseM3U(data) {
+  const lines = data.replace(/\r/g,"").split("\n");
+  const result = [];
+  let current = null;
+
+  for (const raw of lines) {
+    const line = raw.trim();
+    if (!line) continue;
+
+    if (line.startsWith("#EXTINF")) {
+      const name = line.split(",").slice(1).join(",").trim() || "Canal sin nombre";
+      const group = (line.match(/group-title="([^"]*)"/i) || [,"General"])[1];
+      const logo = (line.match(/tvg-logo="([^"]*)"/i) || [,""])[1];
+      current = {
+        name,
+        group,
+        logo,
+        type:detectType(group,name),
+        url:""
+      };
+    } else if (line.startsWith("#")) {
+      continue;
+    } else if (current && /^https?:\/\//i.test(line)) {
+      current.url = line;
+      result.push(current);
+      current = null;
+    }
+  }
+  return result;
+}
+
+function showStatus(message) {
+  document.getElementById("status").textContent = message;
+}
+
+function acceptPlaylist(data) {
+  const parsed = parseM3U(data);
+
+  if (!parsed.length) {
+    showStatus("No se encontraron enlaces válidos en la lista.");
+    return;
+  }
+
+  items = parsed;
+  localStorage.setItem("angelPlaylist", data);
+  showStatus("¡Lista cargada! "+items.length+" elementos encontrados.");
+  document.getElementById("settings").style.display = "none";
+  render();
+}
+
+async function loadURL() {
+  const url = document.getElementById("playlistUrl").value.trim();
+
+  if (!/^https?:\/\//i.test(url)) {
+    showStatus("Ingresá una URL válida.");
+    return;
+  }
+
+  showStatus("Cargando lista...");
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("HTTP "+response.status);
+    acceptPlaylist(await response.text());
+  } catch(e) {
+    showStatus("No se pudo cargar. El servidor puede bloquear CORS. Probá importar el archivo M3U.");
+  }
+}
+
+function loadFile() {
+  const file = document.getElementById("playlistFile").files[0];
+  if (!file) {
+    showStatus("Primero seleccioná un archivo.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => acceptPlaylist(reader.result);
+  reader.onerror = () => showStatus("No se pudo leer el archivo.");
+  reader.readAsText(file);
+}
+
+function toggleFavorite(url) {
+  if (favorites.includes(url)) {
+    favorites = favorites.filter(x => x !== url);
+  } else {
+    favorites.push(url);
+  }
+  localStorage.setItem("angelFavorites",JSON.stringify(favorites));
+  render();
+}
+
+function play(item) {
+  const video = document.getElementById("video");
+  document.getElementById("playerBox").style.display = "block";
+  document.getElementById("playingName").textContent = item.name;
+
+  if (hls) {
+    hls.destroy();
+    hls = null;
+  }
+
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+
+  if (window.Hls && Hls.isSupported() && /\.m3u8($|\?)/i.test(item.url)) {
+    hls = new Hls();
+    hls.loadSource(item.url);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED,() => video.play().catch(()=>{}));
+    hls.on(Hls.Events.ERROR,(event,data) => {
+      if (data.fatal) showStatus("Error al reproducir este contenido.");
+    });
+  } else {
+    video.src = item.url;
+    video.play().catch(() => {
+      showStatus("No se pudo iniciar. El formato o servidor puede no ser compatible.");
+    });
+  }
+
+  document.getElementById("playerBox").scrollIntoView({behavior:"smooth"});
+}
+
+function closePlayer() {
+  const video = document.getElementById("video");
+  video.pause();
+  video.removeAttribute("src");
+  video.load();
+  if (hls) {
+    hls.destroy();
+    hls = null;
+  }
+  document.getElementById("playerBox").style.display = "none";
+}
+
+function render() {
+  const content = document.getElementById("content");
+  const query = document.getElementById("search").value.toLowerCase();
+
+  let filtered = items.filter(item => {
+    const matchesPage =
+      page === "favorites" ? favorites.includes(item.url) :
+      item.type === page;
+
+    return matchesPage &&
+      (item.name+" "+item.group).toLowerCase().includes(query);
+  });
+
+  content.innerHTML = "";
+
+  if (!filtered.length) {
+    content.innerHTML =
+      '<div class="empty" style="grid-column:1/-1">No hay contenido en esta sección.<br>Importá una lista M3U compatible.</div>';
+    return;
+  }
+
+  filtered.forEach(item => {
+    const card = document.createElement("article");
+    card.className = "channel";
+
+    const logo = document.createElement("div");
+    logo.className = "channel-logo";
+
+    if (item.logo && /^https?:\/\//i.test(item.logo)) {
+      const img = document.createElement("img");
+      img.src = item.logo;
+      img.alt = "";
+      img.onerror = () => logo.textContent = "📺";
+      logo.appendChild(img);
+    } else {
+      logo.textContent = item.type === "movies" ? "🎬" :
+                         item.type === "series" ? "📚" : "📺";
+    }
+
+    const name = document.createElement("div");
+    name.className = "channel-name";
+    name.textContent = item.name;
+
+    const cat = document.createElement("div");
+    cat.className = "channel-cat";
+    cat.textContent = item.group;
+
+    const actions = document.createElement("div");
+    actions.className = "card-actions";
+
+    const playButton = document.createElement("button");
+    playButton.className = "play";
+    playButton.textContent = "▶ Ver";
+    playButton.onclick = () => play(item);
+
+    const favButton = document.createElement("button");
+    favButton.textContent = favorites.includes(item.url) ? "❤️" : "♡";
+    favButton.onclick = () => toggleFavorite(item.url);
+
+    actions.append(playButton,favButton);
+    card.append(logo,name,cat,actions);
+    content.appendChild(card);
+  });
+}
+
+try {
+  const saved = localStorage.getItem("angelPlaylist");
+  if (saved) {
+    items = parseM3U(saved);
+    render();
+  }
+} catch(e) {}
+</script>
+</body>
+</html>
